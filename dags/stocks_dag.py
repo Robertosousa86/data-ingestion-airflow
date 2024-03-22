@@ -12,6 +12,7 @@ import pandas as pd
 polygon_key = Variable.get("polygon_key")
 postgres_conn_id = "my_postgres_conn"
 
+
 def request_data():
     try:
         today = datetime.now()
@@ -32,7 +33,11 @@ def request_data():
 
 def insert_data():
     try:
-        
+        postgres_conn_id = "my_postgres_conn"
+        conn = Connection.get_connection_from_secrets(postgres_conn_id)
+        conn_uri = f"postgresql://{conn.login}:{conn.password}@{conn.host}:{conn.port}/{conn.schema}"
+        conn = psycopg2.connect(conn_uri)
+        print("Conexão bem-sucedida!")
 
         data = request_data()
 
