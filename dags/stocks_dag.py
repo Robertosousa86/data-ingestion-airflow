@@ -7,7 +7,6 @@ from airflow.operators.python_operator import PythonOperator
 from datetime import datetime, timedelta
 import psycopg2
 import requests
-import pandas as pd
 
 polygon_key = Variable.get("polygon_key")
 postgres_conn_id = "my_postgres_conn"
@@ -16,7 +15,7 @@ postgres_conn_id = "my_postgres_conn"
 def request_data():
     try:
         today = datetime.now()
-        yesterday = today - timedelta(days=1)
+        yesterday = today - timedelta(days=7)
         date = yesterday.strftime("%Y-%m-%d")
 
         response = requests.get(
@@ -43,30 +42,14 @@ def insert_data():
 
         cur = conn.cursor()
 
-        cur.execute(
-            """
-            CREATE TABLE IF NOT EXISTS stocks (
-                id SERIAL PRIMARY KEY,
-                ticker VARCHAR(10),
-                trading_volume FLOAT,
-                volume_weighted_average DECIMAL(12, 4),
-                open_price FLOAT,
-                close_price FLOAT,
-                highest_price FLOAT,
-                lowest_price FLOAT,
-                window_end_timestamp BIGINT,
-                number_transactions INT,
-                created_at TIMESTAMP
-            )
-            """
-        )
-
         for item in data:
             required_keys = ["T", "v", "vw", "o", "c", "h", "l", "t", "n"]
             if all(key in item for key in required_keys):
                 cur.execute(
                     """
-                    INSERT INTO stocks (ticker, trading_volume, volume_weighted_average, open_price, close_price, highest_price, lowest_price, window_end_timestamp, number_transactions, created_at ) 
+                    INSERT INTO stocks (ticker, trading_volume, volume_weighted_average,
+                    open_price, close_price, highest_price, lowest_price, window_end_timestamp,
+                    number_transactions, created_at ) 
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                     """,
                     (
