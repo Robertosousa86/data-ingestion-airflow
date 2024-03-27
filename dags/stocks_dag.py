@@ -25,21 +25,25 @@ def request_data():
         result = response.json()
 
         return result["results"]
-    except Exception as e:
-        raise SystemError(e)
-    return None
+    except requests.exceptions.RequestException as e:
+        raise SystemExit(e)
 
 
-def insert_data():
+def create_connection():
     try:
         postgres_conn_id = "my_postgres_conn"
         conn = Connection.get_connection_from_secrets(postgres_conn_id)
         conn_uri = f"postgresql://{conn.login}:{conn.password}@{conn.host}:{conn.port}/{conn.schema}"
         conn = psycopg2.connect(conn_uri)
-        print("Conexão bem-sucedida!")
+        return conn
+    except psycopg2.Error as e:
+        raise SystemExit(e)
 
+
+def insert_data():
+    try:
         data = request_data()
-
+        conn = create_connection()
         cur = conn.cursor()
 
         for item in data:
@@ -66,13 +70,11 @@ def insert_data():
                 )
             else:
                 print("Dados incompletos para inserção:", item)
-
         conn.commit()
-
         cur.close()
         conn.close()
     except psycopg2.Error as e:
-        print("Erro ao conectar ao banco de dados:", e)
+        raise SystemExit(e)
 
 
 default_args = {
