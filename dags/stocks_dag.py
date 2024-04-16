@@ -180,9 +180,7 @@ def insert_indicators(indicators_df, conn):
         cursor = conn.cursor()
         for index, row in indicators_df.iterrows():
             cursor.execute("SELECT id FROM stocks WHERE ticker = %s", (row["ticker"],))
-            stock_id = cursor.fetchone()[
-                0
-            ]  # Supondo que o ID seja a primeira coluna retornada
+            stock_id = cursor.fetchone()[0]
 
             cursor.execute(
                 """
